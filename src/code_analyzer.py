@@ -1,17 +1,32 @@
 import ast
-from typing import List, Dict, Set
-from .types import SecurityIssue, PerformanceMetrics, CodeAnalysisResult
-from .decorators import performance_monitor
 from datetime import datetime
+from typing import Dict, List, Set
+
+from .decorators import performance_monitor
+from .types import (
+    CodeAnalysisResult,
+    ComplexityLevel,
+    PerformanceMetrics,
+    SecurityIssue,
+    SecurityLevel,
+)
+
+SECURITY_PATTERNS: Dict[str, SecurityLevel] = {
+    "eval": SecurityLevel.HIGH,
+    "exec": SecurityLevel.HIGH,
+    "__import__": SecurityLevel.MEDIUM,
+    "subprocess": SecurityLevel.MEDIUM,
+}
+
+COMPLEXITY_MAP = {
+    0: ComplexityLevel.O_1,
+    1: ComplexityLevel.O_N,
+    2: ComplexityLevel.O_N_2,
+}
 
 class CodeAnalyzer:
     def __init__(self):
-        self.security_patterns: Dict[str, SecurityLevel] = {
-            "eval": SecurityLevel.HIGH,
-            "exec": SecurityLevel.HIGH,
-            "__import__": SecurityLevel.MEDIUM,
-            "subprocess": SecurityLevel.MEDIUM
-        }
+        self.security_patterns: Dict[str, SecurityLevel] = SECURITY_PATTERNS
 
     @performance_monitor
     async def analyze(self, code: str) -> CodeAnalysisResult:
@@ -76,9 +91,4 @@ class CodeAnalyzer:
         return max_depth
 
     def _estimate_time_complexity(self, nested_loops: int) -> ComplexityLevel:
-        complexity_map = {
-            0: ComplexityLevel.O_1,
-            1: ComplexityLevel.O_N,
-            2: ComplexityLevel.O_N_2
-        }
-        return complexity_map.get(nested_loops, ComplexityLevel.O_N_2) 
+        return COMPLEXITY_MAP.get(nested_loops, ComplexityLevel.O_N_2)
